@@ -2,5 +2,5 @@
 
 def quit_game(root):
     print('Qutting...')
-    # root.quit()
+    root.quit()
     root.destroy()

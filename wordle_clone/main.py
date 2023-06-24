@@ -2,14 +2,11 @@
 
 # %% Imports
 import customtkinter as ctk
-from wordle_clone.utils.words import word_def_pair, get_definition
-from wordle_clone.utils.quit import quit_game
-from wordle_clone.utils.focus import focus_start
-from wordle_clone.utils.in_work_mode import boss_is_watching
-from wordle_clone.utils.appearance import change_appearance
-from wordle_clone.utils.logic import get_colours
-
-import re
+from utils.words import word_def_pair, get_definition
+from utils.quit import quit_game
+from utils.in_work_mode import boss_is_watching
+from utils.appearance import change_appearance
+from utils.logic import get_colours
 
 # %% Functions
 
@@ -49,21 +46,21 @@ import re
 
 # %% Defaults
 
-target_word, target_definition = word_def_pair(5)
-print(target_word)
 
 # Initialise guess
 GUESS_NUM = 1
 
-WORD_LENGTH = 5
+WORD_LENGTH = 10
 NUM_GUESSES = 6
 
 GREEN = '#538D4E'
 YELLOW = '#B59F3B'
 GREY = '#3A3A3C'
 
-BLACK = '#000000'
+BLACK = '#121213'
 WHITE = '#FFFFFF'
+
+# WHITE = '#792DC3'
 
 # Tuple needed for dark/light mode
 THEME = (BLACK, WHITE)
@@ -74,7 +71,10 @@ FONT = ('Helvetica', 24, 'bold')
 SPAN = tuple([i for i in range(NUM_GUESSES+1)])
 
 # Relative path to icons (should? work on any machine)
-ICON_PATH = r'./src/hackathon/icons'
+ICON_PATH = r'icons/'
+
+target_word, target_definition = word_def_pair(WORD_LENGTH)
+print(target_word)
 
 # Needs to be dark by default
 ctk.set_appearance_mode("Dark")
@@ -84,6 +84,7 @@ ctk.set_default_color_theme("blue")
 
 # Begin with blank window
 root = ctk.CTk()
+root.configure(fg_color=(WHITE, BLACK))
 
 # What to do when the X is clicked
 root.protocol('WM_DELETE_WINDOW', lambda: quit_game(root))
@@ -98,7 +99,7 @@ root.grid_rowconfigure(SPAN, weight=1)
 # %% Frames
 
 # Main frame
-frame_1 = ctk.CTkFrame(root, border_color=THEME)
+frame_1 = ctk.CTkFrame(root, fg_color='transparent', border_color=THEME)
 frame_1.grid(row=0, column=1, columnspan=WORD_LENGTH, rowspan=NUM_GUESSES)
 frame_1.grid_columnconfigure(1, weight=1)
 frame_1.grid_rowconfigure(SPAN, weight=1)
@@ -130,7 +131,8 @@ buttons = {}
 button_config = {
     'height' : 80,
     'width' : 80,
-    'text': ' ', # should be blank to begin with
+    'text': ' ', # should be blank to begin with,
+    'text_color':THEME,
     'fg_color' : 'transparent',
     'border_color' : THEME,
     'border_width' : 1,
@@ -150,7 +152,6 @@ for row in range(NUM_GUESSES):
 
 # %% Under buttons
 
-# TODO: on-screen keyboard
 sub_config = {
     'placeholder_text':'Guess word',
     'fg_color':'transparent',
@@ -168,41 +169,49 @@ sub_config = {
 # guess_button.grid(row=NUM_GUESSES, column=1, columnspan=1, sticky='e')
 
 # %% Keyboard
-letter_count = 0
-letters = []
+LETTER_COUNT = 0
 guess = ''
-ks = 'QWERTYUIOPASDFGHJKLZXCVBNM'
+ks = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 def key_pressed(event):
-    global letter_count, guess, GUESS_NUM, ks
+    global LETTER_COUNT, guess, GUESS_NUM, ks
     
     if isinstance(event, str):
-        key = event
+        
+        if event == '⌦':
+            key = 'BACKSPACE'
+        elif event == '↵':
+            key = 'RETURN'
+        # else:
+        #     key = event
     else:
         key = event.keysym.upper()
+        
+    if key in ks and LETTER_COUNT < WORD_LENGTH:
+        button = buttons[(GUESS_NUM-1, LETTER_COUNT)] 
+        button.configure(text=key)
 
-    if key in ks:
-        buttons[(GUESS_NUM-1, letter_count)].configure(text = key)
-        buttons[(GUESS_NUM-1, letter_count)].focus()
-        letter_count += 1
+        LETTER_COUNT += 1
         guess += key
-        if letter_count % 5 == 0:
-                check_word(guess, target_word)
-                guess = ''
-                letter_count = 0 
-                GUESS_NUM += 1
+        
+    
+    elif len(guess) == WORD_LENGTH and key == 'RETURN':
+        check_word(guess, target_word)
+        guess = ''
+        LETTER_COUNT = 0 
+        GUESS_NUM += 1
     
     elif key == 'BACKSPACE':
-        if letter_count > 0:
-            letter_count -= 1
+        if LETTER_COUNT > 0:
+            LETTER_COUNT -= 1
             guess = guess[:-1]
-            buttons[(GUESS_NUM-1, letter_count)].configure(text='')
+            buttons[(GUESS_NUM-1, LETTER_COUNT)].configure(text='')
         
 def check_word(word, target_word):
     # PLACEHOLDER - close if word right
     if word == target_word:
         print('yay')
-        root.destroy()
+        quit_game(root)
 
     if not get_definition(word):
         print(f'{word} not a valid guess')
@@ -229,30 +238,37 @@ key_coords = {}
 
 keys = ['QWERTYUIOP',
         'ASDFGHJKL',
-        '⌦ZXCVBNM↵']
-
-def button_press(event):
-    print(event)
+        '↵ZXCVBNM⌫']
     
 for idx, row in enumerate(keys):
-    row_frame = ctk.CTkFrame(frame_4)
+    row_frame = ctk.CTkFrame(frame_4, fg_color='transparent')
     row_frame.grid(row=idx+1)
     for idy, key in enumerate(row):    
         
         # These keys don't exist in Helvetica
-        if key in ['⌦','↵']:
-            _font = ('', 24) 
+        if key in ['⌫','↵']:
+            width = 80
+            _font = ('', 24)
+            width = 80
+            padx=0
+            if key == '↵':
+                key = 'ENTER'
+                _font = ('', 18)
+                padx = (0, 5)
         else:
             _font = FONT
+            width=50
+            padx=(0,5)
             
         letter = ctk.CTkButton(row_frame, 
                                text=key,
-                               width=50,
-                               height=50,
+                               width=width,
+                               height=70,
                                font=_font,
+                               fg_color=r'#787c7f',
                                command = lambda a=key: key_pressed(a))
         letter.grid_propagate(False)
-        letter.grid(row=idx, column=idy)
+        letter.grid(row=idx, column=idy, padx=padx, pady = (0,5))
         
         key_coords[(idx, idy)] = letter
 root.bind('<Key>', key_pressed)
@@ -273,6 +289,7 @@ theme_config = {
     'offvalue':"Light",
     'border_color':'transparent',
     'variable':theme_switch,
+    'progress_color':'#538D4E',
     }
 
 # Dark/light mode
@@ -284,10 +301,12 @@ theme.select()
 boss_config = {
     'width':110,
     'text':"Boss is in?",
-    'variable':boss_switch,
     'onvalue':"yes",
     'offvalue':"no",
     'border_color':'transparent',
+    'variable':boss_switch,
+    'progress_color':'#538D4E',
+
     }
 boss_watch = ctk.CTkSwitch(
     frame_2,
@@ -308,13 +327,6 @@ boss_watch.grid_propagate(False)
 
 
 # %% Start game
-# Make pressing enter do the same thing
-# as clicking the Submit guess button
-# root.bind('<Return>', lambda event: guess())
-
-# Start window with text box in focus
-# focus = lambda event: focus_start(event=event, app=root, element=guess_box)
-# root.bind('<FocusIn>', focus)
 
 # If left blank, will autofit
 # existing elements
