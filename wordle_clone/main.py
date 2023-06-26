@@ -10,39 +10,6 @@ from utils.logic import get_colours
 
 # %% Functions
 
-# def guess():
-#     global GUESS_NUM
-#     word = guess_box.get().upper()
-
-#     # PLACEHOLDER - close if word right
-#     if word == target_word:
-#         print('yay')
-#         root.destroy()
-
-#     if not get_definition(word):
-#         print(f'{word} not a valid guess')
-
-#     else:
-#         if len(word) == WORD_LENGTH:
-
-#             status = get_colours(word, target_word)
-
-#             for idx, result in enumerate(status):
-
-#                 pos = idx
-#                 colour = status[idx]
-#                 letter = word[idx]
-
-#                 button = buttons[(GUESS_NUM-1, pos)]
-
-#                 button.configure(text=letter)
-#                 button.configure(fg_color=colour)
-
-#             GUESS_NUM += 1
-#             if GUESS_NUM > NUM_GUESSES:
-#                 quit_game(root)
-
-#         guess_box.delete(0, 'end')
 
 # %% Defaults
 
@@ -50,7 +17,7 @@ from utils.logic import get_colours
 # Initialise guess
 GUESS_NUM = 1
 
-WORD_LENGTH = 10
+WORD_LENGTH = 5
 NUM_GUESSES = 6
 
 GREEN = '#538D4E'
@@ -150,23 +117,6 @@ for row in range(NUM_GUESSES):
 
         buttons[coords] = button
 
-# %% Under buttons
-
-sub_config = {
-    'placeholder_text':'Guess word',
-    'fg_color':'transparent',
-    'text_color':THEME,
-    }
-
-# # Where the user inputs word
-# guess_box = ctk.CTkEntry(frame_3,width=260, **sub_config)
-# guess_box.grid_propagate(False)
-# guess_box.grid(row=NUM_GUESSES, column=0, columnspan=2, sticky='w')
-
-# # Optional submit button
-# guess_button = ctk.CTkButton(frame_3,  text="Guess", command=guess)
-# guess_button.grid_propagate(False)
-# guess_button.grid(row=NUM_GUESSES, column=1, columnspan=1, sticky='e')
 
 # %% Keyboard
 LETTER_COUNT = 0
@@ -176,16 +126,22 @@ ks = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 def key_pressed(event):
     global LETTER_COUNT, guess, GUESS_NUM, ks
     
+    # This block handles both
+    # typed keys and those
+    # taken from on-screen keyboard
+    # presses
     if isinstance(event, str):
+        print(event)
         
-        if event == '⌦':
+        if event == '⌫':
             key = 'BACKSPACE'
         elif event == '↵':
             key = 'RETURN'
-        # else:
-        #     key = event
+        else:
+            key = event
     else:
         key = event.keysym.upper()
+        
         
     if key in ks and LETTER_COUNT < WORD_LENGTH:
         button = buttons[(GUESS_NUM-1, LETTER_COUNT)] 
@@ -195,7 +151,7 @@ def key_pressed(event):
         guess += key
         
     
-    elif len(guess) == WORD_LENGTH and key == 'RETURN':
+    elif len(guess) == WORD_LENGTH and key in ['RETURN','ENTER']:
         check_word(guess, target_word)
         guess = ''
         LETTER_COUNT = 0 
@@ -207,6 +163,7 @@ def key_pressed(event):
             guess = guess[:-1]
             buttons[(GUESS_NUM-1, LETTER_COUNT)].configure(text='')
         
+       
 def check_word(word, target_word):
     # PLACEHOLDER - close if word right
     if word == target_word:
