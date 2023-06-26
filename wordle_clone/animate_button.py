@@ -7,6 +7,7 @@ Created on Sun Jun 25 02:37:56 2023
 
 import customtkinter as ctk
 from itertools import product
+from random import choice
 
 class App(ctk.CTk):
     
@@ -54,15 +55,18 @@ class App(ctk.CTk):
         new_height = 1
         while canvas.winfo_height() > new_height:
             
-            canvas.configure(height=canvas.winfo_height() - 2)
+            canvas.configure(height=canvas.winfo_height() - 1)
             canvas.update()
 
     def expand_button(self, canvas, button):
         target_height = 100
-        button.configure(fg_color='red', hover_color='red')
+        
+        colours = ['green','black','blue','red','orange','purple']
+        new_colour = choice(colours)
+        button.configure(fg_color=new_colour, hover_color=new_colour)
 
         while canvas.winfo_height() < target_height:            
-            canvas.configure(height=canvas.winfo_height() + 2)
+            canvas.configure(height=canvas.winfo_height() + 1)
             canvas.update()
         
 if __name__ == '__main__':
