@@ -49,6 +49,13 @@ def shrink_button(button):
     button.configure(height=1, border_color=THEME)
     
 def expand_button(button, colour):
+    """
+    Simulate second part of box-flipping
+    by incrementing the box height to the original height    
+    Args:
+        button (ctk.CTkButton): The button to be expanded.
+        colour (str): The color to be applied to the button.
+    """
     button.configure(fg_color=colour, hover_color=colour)
     
     current_height = button.winfo_height()
@@ -62,16 +69,32 @@ def expand_button(button, colour):
     
     # Workaround for button flexing
     button.configure(height=80, border_color=THEME)
+
+def check_lose(root, guess_number, number_guesses):
+    """
+    Checks if user used up all guesses
+
+    Parameters
+    ----------
+    root : ctk.CTk
+        Root application.
+    guess_number : TYPE, optional
+        DESCRIPTION. The default is GUESS_NUM.
+    num_guesses : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None
+
+    """
+    if guess_number > number_guesses:
+        print('Ya fucked it')
+        quit_game(root)
         
 
 def check_win(root, word, target_word):
-    """
-    Simulate second part of box-flipping
-    by incrementing the box height to the original height    
-    Args:
-        button (ctk.CTkButton): The button to be expanded.
-        colour (str): The color to be applied to the button.
-    """
+
     if word == target_word:
         print('SPLENDID')
         quit_game(root)
@@ -116,10 +139,10 @@ def key_pressed(event):
                  
                 root.update_idletasks()
                 root.after(2500, check_win, root, word, target_word)
-
             word = ''
             LETTER_COUNT = 0
             GUESS_NUM += 1
+            root.after(2500, check_lose, root, GUESS_NUM, NUM_GUESSES)
 
     elif key == 'BACKSPACE':
         if LETTER_COUNT > 0:
@@ -139,7 +162,7 @@ word = ''
 
 
 WORD_LENGTH = 5
-NUM_GUESSES = 8
+NUM_GUESSES = 6
 
 GREEN = '#538D4E'
 YELLOW = '#B59F3B'
@@ -159,7 +182,7 @@ FONT = ('Helvetica', 24, 'bold')
 SPAN = tuple([i for i in range(NUM_GUESSES+1)])
 
 # Relative path to icons (should? work on any machine)
-ICON_PATH = r'icons/'
+ICON_PATH = r'./icons'
 
 target_word, target_definition = word_def_pair(WORD_LENGTH)
 print(target_word)
@@ -186,38 +209,42 @@ root.grid_rowconfigure(SPAN, weight=1)
 
 # %% Frames
 
+# Title frame
+frame_0 = ctk.CTkFrame(root, height=90, width=1000, fg_color='blue')
+frame_0.grid(row=0, column=1)
+# frame_0.grid_propagate(False)
 # Main frame
 config_1 = {
     'width':450,
     'height':530,
-    'fg_color':'transparent',
+    'fg_color':'orange',
     'border_color':THEME[::-1],
     }
 
 if NUM_GUESSES == 6:
     frame_1 = ctk.CTkFrame(root, **config_1)
-    frame_1.grid(row=0, column=1, columnspan=WORD_LENGTH, rowspan=NUM_GUESSES)
+    frame_1.grid(row=1, column=1, columnspan=WORD_LENGTH, rowspan=NUM_GUESSES)
     frame_1.grid_rowconfigure(SPAN, weight=1)
     # frame_1.grid_propagate(False)
 else:
     frame_1 = ctk.CTkScrollableFrame(root, **config_1)
-    frame_1.grid(row=0, column=1, columnspan=WORD_LENGTH, rowspan=NUM_GUESSES)
+    frame_1.grid(row=1, column=1, columnspan=WORD_LENGTH, rowspan=NUM_GUESSES)
     frame_1.grid_rowconfigure(SPAN, weight=1)
-    frame_1.grid_propagate()
+    frame_1.grid_propagate(0)
 
     
 # Options frame
 config_2 = {'width': 170, 'height': 490}
-frame_2 = ctk.CTkFrame(root, fg_color='transparent', border_color=THEME, **config_2)
-frame_2.grid(row=0, column=0)
+frame_2 = ctk.CTkFrame(root, fg_color='red', border_color=THEME, **config_2)
+frame_2.grid(row=1, column=0)
 
 # Stop window shrinking to fit contents
 frame_2.grid_propagate(False)
 frame_2.grid_columnconfigure(0, weight=1)
 
 # Keyboard frame
-frame_3 = ctk.CTkFrame(root, fg_color='transparent', border_color=THEME)
-frame_3.grid(row=NUM_GUESSES+1, column=1)
+frame_3 = ctk.CTkFrame(root, fg_color='green', border_color=THEME)
+frame_3.grid(row=NUM_GUESSES+2, column=1)
 
 # %% Buttons
 
@@ -347,6 +374,7 @@ boss_watch.grid_propagate(False)
 
 
 # %% Start game
+root.iconbitmap(rf'{ICON_PATH}/app_logo.ico')
 
 # If left blank, will autofit
 # existing elements
@@ -356,6 +384,5 @@ root.geometry()
 root.resizable(False,False)
 
 root.update()
-print(frame_1.winfo_width(), frame_1.winfo_height())
 # Display window
 root.mainloop()

@@ -132,7 +132,7 @@ class App(ctk.CTk):
             
             
         if key in ks and self.LETTER_COUNT < self.WORD_LENGTH:
-            button = buttons[(GUESS_NUM-1, LETTER_COUNT)] 
+            button = self.buttons[(GUESS_NUM-1, LETTER_COUNT)] 
             button.configure(text=key)
 
             LETTER_COUNT += 1
